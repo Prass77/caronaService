@@ -1,0 +1,172 @@
+#%RAML 1.0
+title: student-api
+description: "this api is all about student"
+mediaType: 
+- application/json
+version: v1.0.0
+protocols:
+  - HTTP
+
+traits:
+  client-id-required:
+      headers:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+      responses:
+        401:
+          description: Unauthorized or invalid client application credentials
+        500:
+          description: Bad response from authorization server, or WSDL SOAP Fault error
+   
+
+/info:
+ 
+  get:
+    is:
+      - client-id-required
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+               {
+            "Name":"Dattu",
+            "age":25,
+            "Course":"mulesoft",
+            "location": "hyd"
+          }
+/info/{aadharcard}:
+
+  get:
+    is:
+      - client-id-required
+    body:
+      application/json:
+        example:
+          [ {
+              "aadharcard": "123",
+              "name":"Harish",
+              "age": "24",
+              "loca": "hyd"
+            },
+            {
+              "aadharcard": "1234",
+              "name":"Dattu",
+              "age": "25",
+              "loca": "nzb"
+            },
+            {
+              "aadharcard": "1235",
+              "name":"Sandhya",
+              "age": "21",
+              "loca": "mumbai"
+            },
+            {
+              "aadharcard": "12346",
+              "name":"Madhu",
+              "age": "27",
+              "loca": "jgtl"
+            },
+            {
+              "aadharcard": "1237",
+              "name":"navya",
+              "age": "24",
+              "loca": "mchrl"
+            },
+            {
+              "aadharcard": "1234",
+              "name":"Mounika",
+              "age": "24",
+              "loca": "kolkatha"
+            } ]
+/clean:
+  
+  get:
+    is:
+      - client-id-required
+    queryParameters:
+      remove:
+        type: string
+        required: true
+        example:
+          "clear"
+    responses:
+      200:
+        body:
+          application/json:
+            example:
+              {
+                "status": "as per the request cleaned whole data"
+              }
+/caronaArrival:
+  description: "This is the gives all info about count of ppl who affected"
+  get:
+    is:
+      - client-id-required
+    responses:
+      200:
+        body:
+          application/json:
+            example: {
+              "country": "india",
+              "count": "1 crores"
+            }
+/send:
+  post:
+    is:
+      - client-id-required
+    body:
+      application/json:
+        example: 
+        
+          {
+            "name": "Prashanth",
+            "id": "123",
+            "exp": "2 years"
+          }
+    responses:
+      201:
+        body:
+          application/json:
+            example:
+              {
+                "msg": "msg sent",
+                "status": "success"
+              }
+/send/{id}:
+  is:
+    - client-id-required
+  get:
+    body:
+      application/json:
+        example:
+          {
+            "status": "retrived",
+            "msg": "success"
+          }
+/manual:
+  is:
+    - client-id-required
+  get:
+    body:
+      application/json:
+        example:
+          {
+            "msg": "hitted manual request"
+          }
+      
+    
+        
+
+        
+
+              
+            
+                                
+            
+    
+          
+        
+
