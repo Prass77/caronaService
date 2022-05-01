@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="e8438fe6-4b79-4a84-9cff-9dcd39cb547e" >
+		<http:request-connection host="demo-deploy-caronacount.us-e2.cloudhub.io" />
+	</http:request-config>
+	<flow name="triggerInfoFlow" doc:id="5e5c133d-3b95-409b-8f13-e6a88e1bcba3" >
+		<logger level="INFO" doc:name="Logger" doc:id="e3dbc116-52b9-4af9-a67a-01bdb3b97ef5" message="triggered the request listener"/>
+		<http:request method="GET" doc:name="Request" doc:id="49b3dc84-ced2-4d29-9e81-4a589ff846b5" config-ref="HTTP_Request_configuration" path="/api/info">
+			<http:headers ><![CDATA[#[output application/java
+---
+{
+	"Key" : "Value"
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="Logger" doc:id="d464eab6-b7cf-44b7-a7a5-2be15d768b57" message="#[payload]"/>
+	</flow>
+</mule>

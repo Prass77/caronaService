@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd  http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd">
+    <http:listener-config name="student-api-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="8081" />
+    </http:listener-config>
+    <apikit:config name="student-api-config" api="student-api.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
+    <configuration-properties doc:name="Configuration properties" doc:id="edf79833-cb66-428c-b0d8-a5061452ce2d" file="config.yaml" />
+	<flow name="student-api-main">
+        <http:listener config-ref="student-api-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[error.detailedDescription]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="student-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:BAD_REQUEST">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Bad request as this resource is  not available in Student Api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[400]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found, as this resource is  not available in Student Api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Method not allowed, as this method is  not available in Student Api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[405]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not acceptable, as this  is  not available in Student Api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[406]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Unsupported media type,Bad request as this resource is  supported available in Student Api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[415]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+            <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Not Implemented, not available in student api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[501]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="student-api-console">
+        <http:listener config-ref="student-api-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="student-api-config" />
+        <error-handler>
+            <on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform>
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found, not available in student api"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus"><![CDATA[404]]></ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\caronaArrival:student-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="731439dd-0bec-4722-a820-f16a80cedb3d" message="retrived the carona count as per req" />
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+[{
+  country: "india",
+  count: "1 crores",
+  time: now()
+},{
+  country: "us",
+  count: "2 crores",
+  time: now()
+},
+{
+  country: "uk",
+  count: "3 crores",
+  time: now()
+},
+{
+  country: "aus",
+  count: "1.5 crores",
+  time: now()
+},
+{
+  country: "japan",
+  count: "3 crores",
+  time: now()
+}]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+    <flow name="get:\clean:student-api-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  status: "as per the request cleaned whole data for the student api"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="4d97df1d-f335-4213-80b5-71cbcb0093af" message="cleaned as per req" />
+    </flow>
+    <flow name="get:\info:student-api-config">
+        <ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+ [
+      {
+              "aadharcard": "123",
+              "name":"Harish",
+              "age": "24",
+              "loca": "hyd"
+            },
+            {
+              "aadharcard": "1234",
+              "name":"Dattu",
+              "age": "25",
+              "loca": "nzb"
+            },
+            {
+              "aadharcard": "1235",
+              "name":"Sandhya",
+              "age": "21",
+              "loca": "mumbai"
+            },
+            {
+              "aadharcard": "12346",
+              "name":"Madhu",
+              "age": "27",
+              "loca": "jgtl"
+            },
+            {
+              "aadharcard": "1237",
+              "name":"navya",
+              "age": "24",
+              "loca": "mchrl"
+            },
+            {
+              "aadharcard": "12349",
+              "name":"Mounika",
+              "age": "24",
+              "loca": "kolkatha"
+            } ]]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="8b2b3275-1a8d-4cdd-8bd7-c7d63511a50e" message="data retrived for requested " />
+    </flow>
+    <flow name="get:\info\(aadharcard):application\json:student-api-config">
+        <logger level="INFO" message="get:\info\(aadharcard):application\json:student-api-config" />
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="aadharcard">attributes.uriParams.'aadharcard'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <ee:transform doc:name="Transform Message" doc:id="b2f4ff6e-3b0e-4ad3-a6b2-4f896cc252da">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+payload filter $.aadharcard == (vars.aadharcard) map $]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+        <choice doc:name="Choice" doc:id="a0c87873-93c3-4e54-9940-2b6e4141b2c2">
+            <when expression="#[payload == []]">
+                <raise-error doc:name="Raise error" doc:id="112ea111-087d-4448-9833-58b9b0ea2db5" type="AADHARNUM:NOTFOUND" description="aadhar num is not registered in portal, please register the aadhar with near by your meeseva " />
+            </when>
+            <otherwise>
+                <logger level="INFO" doc:name="Logger" doc:id="96da0540-4b9a-49ed-82c4-c2531f262c02" message="num is available " />
+            </otherwise>
+        </choice>
+        <set-payload value="#[payload]" doc:name="Set Payload" doc:id="e1a0965c-5a8a-4821-be5f-288681a85f8e" />
+        <error-handler>
+            <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="2fa7ea0b-5f66-4bbd-bb09-ad6ae81286e0" type="AADHARNUM:NOTFOUND">
+                <logger level="INFO" doc:name="Logger" doc:id="c5fea3d4-d9c4-436e-b6c8-44dcaef1ddc0" message="aadhar num is not registered in portal, please register the aadhar with near by your meeseva , please check" />
+            </on-error-propagate>
+        </error-handler>
+    </flow>
+    <flow name="get:\send\(id):application\json:student-api-config">
+        <ee:transform>
+            <ee:variables>
+                <ee:set-variable variableName="id">attributes.uriParams.'id'</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+        <logger level="INFO" doc:name="Logger" doc:id="40ae33f9-6fea-4059-9f40-566f8da31a4b" message="#[payload]" />
+        <logger level="INFO" message="get:\send\(id):application\json:student-api-config" />
+    </flow>
+    <flow name="get:\manual:application\json:student-api-config">
+        <logger level="INFO" message="get:\manual:application\json:student-api-config" />
+		<logger level="INFO" doc:name="Logger" doc:id="83b0166b-48fc-462d-abe3-6d7cd5f08b37" message="this method is going to be hitting info path"/>
+		<flow-ref doc:name="Flow Reference" doc:id="f502db44-9af0-457a-be9c-7e979bab7e4c" name="triggerInfoFlow"/>
+    </flow>
+    <flow name="post:\send:application\json:student-api-config">
+        <logger level="INFO" doc:name="Logger" doc:id="ba160d1b-8590-4a25-8d88-358a8440c334" message="posted msg "/>
+		<logger level="INFO" doc:name="Logger" doc:id="7eea4103-d1d1-4c56-a3b6-951b4617783a" message="#[payload]"/>
+		<ee:transform>
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  msg: "msg sent",
+  status: "success"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	<flow name="student-apiFlow" doc:id="b9354d9b-87e8-4ccc-8fc4-c2babde78cfc" >
+		<scheduler doc:name="Scheduler" doc:id="bd3ca70e-8fb3-474a-93d4-a018bd42c070" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="5" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="Logger" doc:id="a7e1808d-6679-4c6e-9c98-6c1cb53097bb" message="scheduler started "/>
+		<choice doc:name="Choice" doc:id="6e7e5230-3820-45b4-ba08-329f86ef3341" >
+			<when expression="#[p('voterEligible') &gt; 18]">
+				<logger level="INFO" doc:name="Logger" doc:id="b2040fc9-b0ea-44f4-80c7-bc165662c6e4" message="person age is greater than the value which is set in property"/>
+			</when>
+			<otherwise >
+				<logger level="INFO" doc:name="Logger" doc:id="665e14ad-f39b-4007-ba1d-4ce6a065b87e" message="person age is less than the value which is set in property, pls check the property"/>
+			</otherwise>
+		</choice>
+	</flow>
+</mule>
